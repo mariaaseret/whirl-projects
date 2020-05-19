@@ -202,7 +202,7 @@ function openreaddoc() {
   var folder = ssparents.next();
   var files = folder.getFiles();
   var i=1;
-  
+   var conta = 1;
   while(files.hasNext()) {
     
     var file = files.next();
@@ -214,13 +214,24 @@ function openreaddoc() {
     var body = doc.getBody();
     var text = body.getText();
     // vê se no texto tem a string e retorna true ou false 
-    var n = text.includes("pdf");
-    if (n == true){
-      sheet.getRange(i+1, 1, 1, 3).setValues([['pdf',file.getName(), file.getUrl()]]);
+   
+    var keys = ['distanciamento', 'atividade industrial', 'atividades industriais', 'produção', 'capacidade produtiva',
+                'utilização de máscaras', 'epi', 'fornecimento de máscaras', 'distanciamento', 'isolamento',
+               'transporte de cargas', 'vuc', 'veículos', 'cargas', 'distribuição', 'armazenamento', 'transporte de passageiros', 'veículos de transportes',
+               'atividade comercial', 'atividades comerciais','atividades econômicas','estabelecimentos comerciais', 'estabelecimentos', 'shopping',
+                'shopping center', 'shoppings center', 'centro comercial', 'centros comerciais', 'comércio de rua', 'comércio', 'loja', 'lojas', 'varejo',
+               'assistências técnicas', 'serviços de manutenção', 'assistência mecânica', 'oficinas mecânicas','manuntenção de equipamentos', 'manutenção', 'manutenção de máquinas', 
+                'manutenção de máquinas e equipamentos', 'manutenção de refrigeradores', 'manutenção de refrigeração', 'eletrodomésticos','procon', 'cade'];
+    var textopequeno = text.toLowerCase();
+    for (j = 0; j < keys.length; j++) {
+      if (textopequeno.includes(keys[j])) {
+        sheet.getRange(i+conta, 1, 1, 3).setValues([[keys[j],file.getName(), file.getUrl()]]);
+        conta++;
+      }
     }
+    
     //sheet.getRange(i+1, 1, 1, 4).setValues([[file.getLastUpdated(),file.getOwner().getName(),file.getName(), file.getUrl()]]);
     i++;
-    
   }
   
 }
