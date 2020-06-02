@@ -5,8 +5,8 @@ function myFunction() {
 function onOpen() {  
   // Cria uma opção no menu
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var searchMenuEntries = [ {name: "Converter", functionName: "convertPdftoDoc"},{name: "Executar", functionName: "openreaddoc"} ];
-  ss.addMenu("Listar", searchMenuEntries);
+  var searchMenuEntries = [  {name: "Adicionar Palavras", functionName: "readwords"},{name: "Converter PDF", functionName: "convertPdftoDoc"},{name: "Executar Busca", functionName: "openreaddoc"} ];
+  ss.addMenu("Novas Funções", searchMenuEntries);
 }
  
 function listFiles() {
@@ -178,13 +178,47 @@ function convertPdftoDoc(){
     var docFile = Drive.Files.insert(resource, fileBlob, options); 
    // var dir = DriveApp.getFoldersByName('leitura dos pdfs').next();
  
-   Logger.log(docFile.alternateLink);  
+   Logger.log(docFile.alternateLink); 
   }
   
 }
 
+//funcao para adicionar as palavras de busca
+function readwords(){
+  
+  // Recupera a planilha e a aba ativas
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ssid = ss.getId();
+  
+  // Procura dentro da mesma pasta da planilha atual
+  var ssparents = DriveApp.getFileById(ssid).getParents();
+  var sheet = ss.getActiveSheet(); 
+  
+  var range = "A:A";
+  
+  //PRECISO TER ACESSO A PRMEIRA ABA AO INVES DA ABA ATIVA var result = Sheets.Spreadsheets.Values.get
+  var info_sheet_example2 = SpreadsheetApp.getActiveSpreadsheet().getSheets()[1];
+
+  var result = Sheets.Spreadsheets.Values.get(ssid, range);
+  var numRows = result.values ? result.values.length : 0;
+  //todos os valores contidos na coluna A
+  var all = result.values;
+  
+  //var headers = [[all, all, all[2]]];
+  //sheet.getRange("B1:D1").setValues(headers);
+  //Logger.log(numRows);
+  
+  return [all,numRows];
+}
+
 //funcao que abre doc por doc de dentro da pasta que está esse sheets, verifica se contem a palavra no arquivo e retorna uma anotacao de nome e documento que esta palavra esta contida
-function openreaddoc() {      
+function openreaddoc() {   
+
+  //acessando a funcao de leitura de palavras
+  var values = readwords();
+  var all = values[0];
+  var numRows = values[1];
+
  // Recupera a planilha e a aba ativas
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var ssid = ss.getId();
@@ -198,11 +232,12 @@ function openreaddoc() {
   sheet.getRange("A1:C").clear();
   sheet.getRange("A1:C1").setValues(headers);
   
+  
   // Percorre todos os arquivos
   var folder = ssparents.next();
   var files = folder.getFiles();
   var i=1;
-   var conta = 1;
+  var conta = 1;
   while(files.hasNext()) {
     
     var file = files.next();
@@ -215,13 +250,20 @@ function openreaddoc() {
     var text = body.getText();
     // vê se no texto tem a string e retorna true ou false 
    
-    var keys = ['distanciamento', 'atividade industrial', 'atividades industriais', 'produção', 'capacidade produtiva',
+    var keys=[];
+    
+  //preenchendo as keys com as palavras que digitei
+    for (var k = 0; k < all.length; k++) {
+      keys[k] = all[k];
+    }
+ 
+   /* var keys = ['distanciamento', 'atividade industrial', 'atividades industriais', 'produção', 'capacidade produtiva',
                 'utilização de máscaras', 'epi', 'fornecimento de máscaras', 'distanciamento', 'isolamento',
                'transporte de cargas', 'vuc', 'veículos', 'cargas', 'distribuição', 'armazenamento', 'transporte de passageiros', 'veículos de transportes',
                'atividade comercial', 'atividades comerciais','atividades econômicas','estabelecimentos comerciais', 'estabelecimentos', 'shopping',
                 'shopping center', 'shoppings center', 'centro comercial', 'centros comerciais', 'comércio de rua', 'comércio', 'loja', 'lojas', 'varejo',
                'assistências técnicas', 'serviços de manutenção', 'assistência mecânica', 'oficinas mecânicas','manuntenção de equipamentos', 'manutenção', 'manutenção de máquinas', 
-                'manutenção de máquinas e equipamentos', 'manutenção de refrigeradores', 'manutenção de refrigeração', 'eletrodomésticos','procon', 'cade'];
+                'manutenção de máquinas e equipamentos', 'manutenção de refrigeradores', 'manutenção de refrigeração', 'eletrodomésticos','procon', 'cade'];*/
     var textopequeno = text.toLowerCase();
     for (j = 0; j < keys.length; j++) {
       if (textopequeno.includes(keys[j])) {
