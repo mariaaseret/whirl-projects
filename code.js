@@ -144,6 +144,15 @@ function getDocItems(docID, identifier){
 
 //------------------------------------------------------------------
 
+//funcao que baixa o diario oficial de santa catarina sozinho
+function downloadSC(){
+
+  // The code below logs the value of the first byte of the Google home page.
+  var response = UrlFetchApp.fetch("http://doe.sea.sc.gov.br/Portal/VisualizarJornal.aspx?cd=2410");
+return response.getContentText();
+  
+}
+
 //funcao que converte todos os pdfs contidos na pasta para docs 
 function convertPdftoDoc(){
   // Recupera a planilha e a aba ativas
