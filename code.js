@@ -6,9 +6,13 @@ function onOpen() {
   // Cria uma opção no menu
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var searchMenuEntries = [  {name: "Adicionar Palavras", functionName: "readwords"},{name: "Converter PDF", functionName: "convertPdftoDoc"},{name: "Executar Busca", functionName: "openreaddoc"} ];
-  ss.addMenu("Novas Funções", searchMenuEntries);
+  ss.addMenu("Buscas no Drive", searchMenuEntries);
+  var searchMenuEntries2 = [  {name: "Adicionar Palavras", functionName: "readwords"},{name: "Adicionar links", functionName: "readlinks"},{name: "Executar Busca", functionName: "extractTextFromPDF"} ];
+  ss.addMenu("Buscas nos Links", searchMenuEntries2);
 }
- 
+
+
+
 function listFiles() {
   // Recupera a planilha e a aba ativas
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -17,7 +21,7 @@ function listFiles() {
   // Procura dentro da mesma pasta da planilha atual
   var ssparents = DriveApp.getFileById(ssid).getParents();
   var sheet = ss.getActiveSheet();
- 
+  
   // Configura um título para apresentar os resultados
   var headers = [["Atualizado em", "Proprietário", "Nome do arquivo", "URL do arquivo"]];
   sheet.getRange("A1:D").clear();
@@ -38,27 +42,146 @@ function listFiles() {
   }
 }
 
-/*function extractTextFromPDF() {
 
+//funcao para adicionar os links dos pdfs
+function readlinks(){
+  
+  // Recupera a planilha e a aba ativas
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ssid = ss.getId();
+  
+  // Procura dentro da mesma pasta da planilha atual
+  var ssparents = DriveApp.getFileById(ssid).getParents();
+  var sheet = ss.getActiveSheet(); 
+  
+  var range = "B:B";
+
+  var result = Sheets.Spreadsheets.Values.get(ssid, range);
+  var numRows = result.values ? result.values.length : 0;
+
+  var all = result.values;
+
+  return [all,numRows];
+}
+
+
+function printarconteudos(){
+
+  // Recupera a planilha e a aba ativas
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ssid = ss.getId();
+  
+  // Procura dentro da mesma pasta da planilha atual
+  var ssparents = DriveApp.getFileById(ssid).getParents();
+  var sheet = ss.getActiveSheet(); 
+  
+  var file = DriveApp.getFileById(ss.getId());
+  var folders = file.getParents();
+  
   // PDF File URL
   // You can also pull PDFs from Google Drive
-  var url = "https://img.labnol.org/files/Most-Useful-Websites.pdf";
-
+  
+  //acessando a funcao de leitura de palavras
+  var valores = readlinks();
+  var links = valores[0];
+  var numRowsLinks = valores[1];
+ 
+  for (var c = 0; c < numRowsLinks; c++) {
+   
+    sheet.getRange(c+1, 1, 1, 1).setValues([[links[c]]]); 
+  
+  }
+  
+}
+function extractTextFromPDF() {
+  // Recupera a planilha e a aba ativas
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ssid = ss.getId();
+  
+  // Procura dentro da mesma pasta da planilha atual
+  var ssparents = DriveApp.getFileById(ssid).getParents();
+  var sheet = ss.getActiveSheet(); 
+  
+  var file = DriveApp.getFileById(ss.getId());
+  var folders = file.getParents();
+  
+  // PDF File URL
+  // You can also pull PDFs from Google Drive
+  
+  //acessando a funcao de leitura de palavras
+  var values = readlinks();
+  var links = values[0];
+  var numRowsLinks = values[1];
+ 
+  for (var c = 0; c < numRowsLinks; c++) {
+   
+      var url = links[c];
+  
   var blob = UrlFetchApp.fetch(url).getBlob();
   var resource = {
     title: blob.getName(),
     mimeType: blob.getContentType()
   };
-
+  
   // Enable the Advanced Drive API Service
   var file = Drive.Files.insert(resource, blob, {ocr: true, ocrLanguage: "en"});
-
+  
   // Extract Text from PDF file
   var doc = DocumentApp.openById(file.id);
-  var text = doc.getBody().getText();
+  var text = doc.getBody().getText(); 
+  var body = doc.getBody();
+  
+  var values1 = readwords();
+  var all1 = values1[0];
+  var numRows1 = values1[1];
+  
+  
+  var conta=0;
+  var i = 0;
+  var keys=[];
+  
+  //preenchendo as keys com as palavras que digitei
+  for (var k = 0; k < all1.length; k++) {
+    keys[k] = all1[k];
+  }
+  
+  var textopequeno = text.toLowerCase();
+  for (j = 0; j < keys.length; j++) {
+    if (textopequeno.includes(keys[j])) {
+      
+      sheet.getRange(c+conta+1, 1, 1, 2).setValues([[keys[j],"achei"]]); 
+      conta++;
+    }
+  }
+  
+    
+  
+}
 
-  return text;
-}*/
+}
+
+function findXtext() {
+  var body = DocumentApp.getActiveDocument().getBody();
+  var foundElement = body.findText("`{3}(arquivo)`{3}");
+  
+  while (foundElement != null) {
+    // Get the text object from the element
+    var foundText = foundElement.getElement().asText();
+    
+    // Where in the element is the found text?
+    var start = foundElement.getStartOffset();
+    var end = foundElement.getEndOffsetInclusive();
+    
+    // Set Bold
+    foundText.setBold(start, end, true);
+    
+    // Change the background color to yellow
+    foundText.setBackgroundColor(start, end, "#FCFC00");
+    
+    // Find the next match
+    foundElement = body.findText("`{3}(arquivo)`{3}", foundElement);
+  }
+}
 
 function pdfToDoc() {  
   var fileBlob = DriveApp.getFileById('0B3m2D6239t6aWHo5TVpyYzhxV1U').getBlob();  
@@ -84,28 +207,6 @@ function uploadFile() {
   Logger.log('ID: %s, File size (bytes): %s', file.id, file.fileSize);
 }
 
-/* ####### GET DOCUMENT TEXT BASED ON REFERNCE CHARACTERS ######
- *
- * Creats an array of all the Google Doc documents text based on reference values.
- * This script requires a reference identifier start and end character set. The code will then
- * select the text inside the identifiers. I will either include the identifiers or not 
- * depending on your selection. 
- *
- * param {string} docID : The ID of the Google Doc, found in the URL.
- * param {object} identifier : An object containing the start and end identifiers to searh and if they should be included in the returned results.
- *
- * ## identifer object set up example ##
- *
- * {
- *   start: `{{`, // << add your start identifying charaters here.
- *   start_include: false, // << if you want the start identifier included change to true.
- *   end: `}}`, // << add your end identifying characters here. 
- *   end_include: false // << if you want the end identifier included change to true.
- * };
- *
- * returns {array} : Returns array of strings of characters found within identifiers.
- *
- */
 
 function getDocItems(docID, identifier){
   const body = DocumentApp.openById(docID).getBody();
@@ -115,7 +216,7 @@ function getDocItems(docID, identifier){
   let startLen =  identifier.start_include ? 0 : identifier.start.length;
   let endLen = identifier.end_include ? 0 : identifier.end.length;
   
- 
+  
   //Set up the reference loop
   let textStart = 0;
   let doc = docText;
@@ -146,10 +247,10 @@ function getDocItems(docID, identifier){
 
 //funcao que baixa o diario oficial de santa catarina sozinho
 function downloadSC(){
-
+  
   // The code below logs the value of the first byte of the Google home page.
   var response = UrlFetchApp.fetch("http://doe.sea.sc.gov.br/Portal/VisualizarJornal.aspx?cd=2410");
-return response.getContentText();
+  return response.getContentText();
   
 }
 
@@ -167,9 +268,9 @@ function convertPdftoDoc(){
   var files = folder.getFiles();
   var i=1;
   //var dir = DriveApp.getFolder();
-
+  
   while(files.hasNext()) {
-   var file = files.next();
+    var file = files.next();
     if(ss.getId() == file.getId()){ 
       continue; 
     }
@@ -185,9 +286,9 @@ function convertPdftoDoc(){
     };
     
     var docFile = Drive.Files.insert(resource, fileBlob, options); 
-   // var dir = DriveApp.getFoldersByName('leitura dos pdfs').next();
- 
-   Logger.log(docFile.alternateLink); 
+    // var dir = DriveApp.getFoldersByName('leitura dos pdfs').next();
+    
+    Logger.log(docFile.alternateLink); 
   }
   
 }
@@ -207,7 +308,7 @@ function readwords(){
   
   //PRECISO TER ACESSO A PRMEIRA ABA AO INVES DA ABA ATIVA var result = Sheets.Spreadsheets.Values.get
   var info_sheet_example2 = SpreadsheetApp.getActiveSpreadsheet().getSheets()[1];
-
+  
   var result = Sheets.Spreadsheets.Values.get(ssid, range);
   var numRows = result.values ? result.values.length : 0;
   //todos os valores contidos na coluna A
@@ -222,20 +323,44 @@ function readwords(){
 
 //funcao que abre doc por doc de dentro da pasta que está esse sheets, verifica se contem a palavra no arquivo e retorna uma anotacao de nome e documento que esta palavra esta contida
 function openreaddoc() {   
-
+  
+  
   //acessando a funcao de leitura de palavras
   var values = readwords();
   var all = values[0];
   var numRows = values[1];
-
- // Recupera a planilha e a aba ativas
+  
+  // Recupera a planilha e a aba ativas
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var ssid = ss.getId();
+  
   
   // Procura dentro da mesma pasta da planilha atual
   var ssparents = DriveApp.getFileById(ssid).getParents();
   var sheet = ss.getActiveSheet(); 
-
+  
+  var file = DriveApp.getFileById(ss.getId());
+  var folders = file.getParents();
+  
+  
+  // para retornar o link somente do pdf 
+  // var folderId = "1z9M8pXLMNjHaOYf13wiKuZjcsMN6AwSs";
+  var files = DriveApp.getFolderById(folders.next().getId()).getFiles();
+  var result = [];
+  while (files.hasNext()) {
+    
+    var file = files.next();
+    if(file.getMimeType() == "application/pdf"){
+      var temp = {
+        url: "  https://drive.google.com/file/d/" + file.getId() + "/view" ,
+        name: file.getName()
+        
+      };
+      result.push(temp);}
+    
+  };
+  
+  
   // Configura um título para apresentar os resultados
   var headers = [["Palavras encontradas", "Nome do arquivo", "URL do arquivo"]];
   sheet.getRange("A1:C").clear();
@@ -257,34 +382,50 @@ function openreaddoc() {
     var doc = DocumentApp.openById(file.getId());
     var body = doc.getBody();
     var text = body.getText();
-    // vê se no texto tem a string e retorna true ou false 
-   
+    
     var keys=[];
     
-  //preenchendo as keys com as palavras que digitei
+    //preenchendo as keys com as palavras que digitei
     for (var k = 0; k < all.length; k++) {
       keys[k] = all[k];
     }
- 
-   /* var keys = ['distanciamento', 'atividade industrial', 'atividades industriais', 'produção', 'capacidade produtiva',
-                'utilização de máscaras', 'epi', 'fornecimento de máscaras', 'distanciamento', 'isolamento',
-               'transporte de cargas', 'vuc', 'veículos', 'cargas', 'distribuição', 'armazenamento', 'transporte de passageiros', 'veículos de transportes',
-               'atividade comercial', 'atividades comerciais','atividades econômicas','estabelecimentos comerciais', 'estabelecimentos', 'shopping',
-                'shopping center', 'shoppings center', 'centro comercial', 'centros comerciais', 'comércio de rua', 'comércio', 'loja', 'lojas', 'varejo',
-               'assistências técnicas', 'serviços de manutenção', 'assistência mecânica', 'oficinas mecânicas','manuntenção de equipamentos', 'manutenção', 'manutenção de máquinas', 
-                'manutenção de máquinas e equipamentos', 'manutenção de refrigeradores', 'manutenção de refrigeração', 'eletrodomésticos','procon', 'cade'];*/
+    
+    /* var keys = ['distanciamento', 'atividade industrial', 'atividades industriais', 'produção', 'capacidade produtiva',
+    'utilização de máscaras', 'epi', 'fornecimento de máscaras', 'distanciamento', 'isolamento',
+    'transporte de cargas', 'vuc', 'veículos', 'cargas', 'distribuição', 'armazenamento', 'transporte de passageiros', 'veículos de transportes',
+    'atividade comercial', 'atividades comerciais','atividades econômicas','estabelecimentos comerciais', 'estabelecimentos', 'shopping',
+    'shopping center', 'shoppings center', 'centro comercial', 'centros comerciais', 'comércio de rua', 'comércio', 'loja', 'lojas', 'varejo',
+    'assistências técnicas', 'serviços de manutenção', 'assistência mecânica', 'oficinas mecânicas','manuntenção de equipamentos', 'manutenção', 'manutenção de máquinas', 
+    'manutenção de máquinas e equipamentos', 'manutenção de refrigeradores', 'manutenção de refrigeração', 'eletrodomésticos','procon', 'cade'];*/
     var textopequeno = text.toLowerCase();
     for (j = 0; j < keys.length; j++) {
       if (textopequeno.includes(keys[j])) {
-        sheet.getRange(i+conta, 1, 1, 3).setValues([[keys[j],file.getName(), file.getUrl()]]);
+        
+        for(l = 0; l < result.length; l++){
+          if(file.getName()+".pdf" == result[l].name){
+            var iquals = result[l].url;}
+        }      
+        
+        sheet.getRange(i+conta, 1, 1, 3).setValues([[keys[j],file.getName(), iquals]]); 
         conta++;
       }
     }
     
-    //sheet.getRange(i+1, 1, 1, 4).setValues([[file.getLastUpdated(),file.getOwner().getName(),file.getName(), file.getUrl()]]);
+  
     i++;
   }
   
+}
+
+function savepdffrompage(){
+  var doc = new jsPDF({
+    orientation: 'landscape',
+    unit: 'in',
+    format: [4, 2]
+  })
+  
+  doc.text('Hello world!', 1, 1)
+  doc.save('two-by-four.pdf')
 }
 
 //------------------------------------------------------------------
