@@ -1,0 +1,23 @@
+Dados extraídos do portal da transparência do governo federal
+
+2013: https://dados.gov.br/dataset/diario-oficial-da-uniao-materias-publicadas-em-2013
+2014: https://dados.gov.br/dataset/diario-oficial-da-uniao-materias-publicadas-em-2014
+2015: https://dados.gov.br/dataset/diario-oficial-da-uniao-materias-publicadas-em-2015
+2016: https://dados.gov.br/dataset/diario-oficial-da-uniao-materias-publicadas-em-2016
+2017: https://dados.gov.br/dataset/diario-oficial-da-uniao
+2018: https://dados.gov.br/dataset/diario-oficial-da-uniao-materias-publicadas-em-2018
+
+
+Na saída é possível observar a data de publicação, a identificação e o nome do arquivo xml (disponível nos links acima)
+Foram extraídos apenas as seções de número 1 de todos os meses que estavam disponíveis no portal da transparência.
+É importante observar que no ano de 2015 os arquivos de seção 1 dos meses de março, abril, maio, junho e julho não estavam disponobilizados.
+
+A busca retorna um arquivo em texto separado por @ (@ para mudar de coluna e @@ para mudar de linha)
+
+As palavras pesquisadas não case sensitive, então consideram todos os tipos de escrita.
+
+Palavras de busca / arquivo de retorno:
+Electrolux / ELECTROLUX.txt
+Suframa / SUFRAMA.txt
+Superintendência da zona franca de manaus / MANAUS.txt
+Electrolux da amazônia / ELUXAMA.txt
