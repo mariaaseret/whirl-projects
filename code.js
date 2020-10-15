@@ -429,3 +429,58 @@ function savepdffrompage(){
 }
 
 //------------------------------------------------------------------
+
+
+
+function Pesquisar(Concatena)
+{
+
+var Planilha = SpreadsheetApp.openByUrl(url);
+var Guia = Planilha.getSheetByName("Base");
+var i = 10;
+for (){
+var LocalPesquisa = Guia.getRange(1, 1, Guia.getLastRow(),10).getValues();
+
+var Criterio = LocalPesquisa.map(function (r){return r[0];});
+var Retorna = LocalPesquisa.map(function (r){return r[9];});
+var Pegar = Criterio.indexOf(Concatena);
+
+}
+
+ if (Pegar > -1)
+  {
+  return Retorna[Pegar];
+  }else
+  {
+  return 'Não encontrado';
+  }
+
+
+}
+
+
+function printarconteudos(){
+
+  // Recupera a planilha e a aba ativas
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ssid = ss.getId();
+  
+  // Procura dentro da mesma pasta da planilha atual
+  var ssparents = DriveApp.getFileById(ssid).getParents();
+  var sheet = ss.getActiveSheet(); 
+  
+  var file = DriveApp.getFileById(ss.getId());
+  var folders = file.getParents();
+  
+  var v1 = "abc";
+  var v2 = "def";
+  var conc = v1+v2;
+  sheet.getRange(1, 1, 1, 1).setValues([[conc]]); 
+}
+
+  var paragraphs = body.getParagraphs();
+    var numParagraphs = body.getParagraphs().length;
+    for (var n = 0; n < numParagraphs; n++) {
+      var atualParagraph = paragraphs[n].getText();
+      var paragrafopequeno = atualParagraph.toLowerCase(); 
+    
